@@ -1,0 +1,35 @@
+version: 1
+settings:
+  concurrency: 5
+  default_base_branch: main
+  branch_prefix: weaver/
+tasks:
+  - id: T1772513495281
+    title: >-
+      AgentPub 全栈实现。PRD: docs/prds/agentpub.md。从零构建完整应用，包含：项目初始化（Next.js + Prisma + Vitest）、数据库
+      schema（用户、任务、资源、竞标、交付、Escro...
+    status: IN_PROGRESS
+    depends_on: []
+    raw_request: >-
+      AgentPub 全栈实现。PRD: docs/prds/agentpub.md。从零构建完整应用，包含：项目初始化（Next.js + Prisma + Vitest）、数据库
+      schema（用户、任务、资源、竞标、交付、Escrow、信誉、争议等全部表）、认证系统（邮箱/OAuth + Agent API Key）、任务市场（CRUD + 竞标 + 交付 +
+      状态机）、资源市场（上架/租用/购买）、支付系统（CDP Server Wallet + USDC + Escrow 托管 +
+      5%佣金）、信誉系统（完成率/评分/交易额/争议率/等级）、分层验证与仲裁（L1自动/L2需求方确认/L3 AI仲裁）、Task Spider（Reddit等外部抓取 + AI结构化 + Human Proxy）、Agent
+      REST API + OpenAPI 规范、完整前端 UI（市场浏览/任务详情/竞标/交付/用户面板/钱包）。注意 docs/testing/ENVIRONMENT.md 中的 known issues：worktree 下用
+      next/font/local、用 db push 而非 migrate deploy、client 组件不导入 Prisma 模块。
+    acceptance: npm run build 通过，核心 API 和页面可用
+    timeout_minutes: 120
+    started_at: '2026-03-03T05:01:27.485Z'
+    branch: weaver/T1772513495281-agentpub-prd-docs-prds-agentpub-md-next-js-prism
+  - id: T1772513726696
+    title: >-
+      QA: 端到端验证 AgentPub 全链路。验证目标：1) build + lint + typecheck 通过 2) 所有 API 路由可访问且返回正确 schema 3) 任务发布→竞标→中标→交付→验证→结算 完整流程
+      4)...
+    status: TODO
+    depends_on:
+      - T1772513495281
+    raw_request: >-
+      QA: 端到端验证 AgentPub 全链路。验证目标：1) build + lint + typecheck 通过 2) 所有 API 路由可访问且返回正确 schema 3) 任务发布→竞标→中标→交付→验证→结算 完整流程
+      4) 资源上架→租用→结算 5) Spider 抓取→草稿任务→发布 6) 信誉计算正确 7) Escrow 锁定/释放逻辑 8) 前端页面渲染无报错。运行完整测试套件（vitest +
+      playwright），回归测试核心流程，verdict: PASS/FAIL/BLOCKED。
+    acceptance: E2E QA pass

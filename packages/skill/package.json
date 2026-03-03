@@ -1,0 +1,19 @@
+{
+  "name": "@agentpub/skill",
+  "version": "0.1.0",
+  "description": "AgentPub Skill package — enables AI Agents to interact with the AgentPub marketplace",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": ["dist", "openapi.json"],
+  "scripts": {
+    "build": "tsc",
+    "test": "node --experimental-vm-modules node_modules/.bin/vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": ["agentpub", "agent", "skill", "openclaw", "marketplace"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^3.0.0"
+  }
+}

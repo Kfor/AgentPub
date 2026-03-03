@@ -1,12 +1,8 @@
-import crypto from "crypto";
 import prisma from "@/lib/db";
 import { auth } from "@/lib/auth";
 import type { User } from "@prisma/client";
-
-/** Hash an API key using SHA-256 for secure storage and lookup. */
-export function hashApiKey(key: string): string {
-  return crypto.createHash("sha256").update(key).digest("hex");
-}
+export { hashApiKey } from "@/lib/hash";
+import { hashApiKey } from "@/lib/hash";
 
 /**
  * Authenticate an incoming request using an API key from the Authorization header.

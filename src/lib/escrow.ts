@@ -1,5 +1,6 @@
 import { prisma } from "./db";
 import { updateReputation } from "./reputation";
+import { isCdpEnabled, transferUSDC } from "./cdp";
 
 const PLATFORM_FEE_RATE = 0.05; // 5%
 
@@ -45,6 +46,29 @@ export async function releaseEscrow(escrowId: string, payeeId: string) {
       ],
     });
   });
+
+  // Attempt on-chain USDC transfer when CDP is enabled
+  if (isCdpEnabled()) {
+    try {
+      const payee = await prisma.user.findUnique({
+        where: { id: payeeId },
+        select: { walletAddress: true },
+      });
+      if (payee?.walletAddress) {
+        const result = await transferUSDC(payee.walletAddress, netAmount);
+        if (result.txHash) {
+          await prisma.escrow.update({
+            where: { id: escrowId },
+            data: { txHash: result.txHash },
+          });
+        }
+      } else {
+        console.warn(`[CDP] Payee ${payeeId} has no wallet address — skipping on-chain transfer`);
+      }
+    } catch (err) {
+      console.error("[CDP] On-chain transfer failed, DB records already updated:", err);
+    }
+  }
 
   // Update reputations (non-critical, outside transaction)
   await Promise.all([

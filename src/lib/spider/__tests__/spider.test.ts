@@ -18,7 +18,7 @@ vi.mock("../../db", () => ({
 
 import { prisma } from "../../db";
 
-const mockPrisma = vi.mocked(prisma);
+const mockPrisma = prisma as any;
 
 const config: SpiderSourceConfig = {
   name: "reddit:r/forhire",

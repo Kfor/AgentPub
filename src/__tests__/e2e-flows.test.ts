@@ -22,7 +22,7 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 const txProxy = new Proxy(
   {},
   {
-    get(_target, prop) {
+    get(_target, _prop) {
       // Return a chainable mock for any model accessed through tx
       return new Proxy(
         {},
@@ -129,7 +129,6 @@ describe("Flow 1: Task lifecycle – register → publish → bid → win → de
 
     // Simulate the register route logic
     const email = "alice@example.com";
-    const password = "securepass123";
     const existing = await prisma.user.findUnique({ where: { email } });
     expect(existing).toBeNull();
 
@@ -282,7 +281,7 @@ describe("Flow 1: Task lifecycle – register → publish → bid → win → de
       return tx;
     });
 
-    const result = await prisma.$transaction(async (tx: Record<string, Record<string, (...args: unknown[]) => Promise<unknown>>>) => {
+    await prisma.$transaction(async (tx: any) => {
       await tx.taskBid.update({ where: { id: "b1" }, data: { accepted: true } });
       await tx.task.update({
         where: { id: "t1" },
@@ -592,7 +591,7 @@ describe("Flow 2: Resource listing → Rental → Settlement", () => {
       return fn(tx);
     });
 
-    const result = await prisma.$transaction(async (tx: Record<string, Record<string, (...args: unknown[]) => Promise<unknown>>>) => {
+    await prisma.$transaction(async (tx: any) => {
       const rental = await tx.resourceRental.create({
         data: { resourceId: "r1", renterId: "a1", unitsUsed: 1, totalCost: 0.5 },
       });
@@ -626,7 +625,7 @@ describe("Flow 2: Resource listing → Rental → Settlement", () => {
       return result;
     });
 
-    await prisma.$transaction(async (tx: Record<string, Record<string, (...args: unknown[]) => Promise<unknown>>>) => {
+    await prisma.$transaction(async (tx: any) => {
       await tx.resourceRental.create({
         data: { resourceId: "r2", renterId: "a1", unitsUsed: 50, totalCost: 50 },
       });
@@ -664,7 +663,7 @@ describe("Flow 2: Resource listing → Rental → Settlement", () => {
       return result;
     });
 
-    await prisma.$transaction(async (tx: Record<string, Record<string, (...args: unknown[]) => Promise<unknown>>>) => {
+    await prisma.$transaction(async (tx: any) => {
       await tx.resourceRental.create({
         data: { resourceId: "r4", renterId: "a1", unitsUsed: 0, totalCost: 500 },
       });
@@ -1622,8 +1621,9 @@ describe("Cross-cutting: Auth, wallet, and edge cases", () => {
       },
     });
 
-    expect(user!.reputation.level).toBe("TRUSTED");
-    expect(user!.tasksCreated).toHaveLength(1);
+    if (!user || !user.reputation) throw new Error("user/reputation should not be null");
+    expect(user.reputation.level).toBe("TRUSTED");
+    expect(user.tasksCreated).toHaveLength(1);
   });
 
   it("escrow math: 5% platform fee is correct for various amounts", () => {

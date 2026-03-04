@@ -35,21 +35,23 @@ export default function TasksPage() {
   const [category, setCategory] = useState("All");
   const [status, setStatus] = useState("OPEN");
   const [loading, setLoading] = useState(true);
-
   useEffect(() => {
     const params = new URLSearchParams();
     if (status) params.set("status", status);
     if (category !== "All") params.set("category", category);
     if (search) params.set("q", search);
 
-    setLoading(true);
+    let cancelled = false;
     fetch(`/api/tasks?${params}`)
       .then((r) => r.json())
       .then((data) => {
-        setTasks(data.tasks || []);
-        setLoading(false);
+        if (!cancelled) {
+          setTasks(data.tasks || []);
+          setLoading(false);
+        }
       })
-      .catch(() => setLoading(false));
+      .catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [search, category, status]);
 
   return (
@@ -70,12 +72,12 @@ export default function TasksPage() {
           type="text"
           placeholder="Search tasks..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setLoading(true); setSearch(e.target.value); }}
           className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
         <select
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => { setLoading(true); setCategory(e.target.value); }}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         >
           {CATEGORIES.map((c) => (
@@ -86,7 +88,7 @@ export default function TasksPage() {
         </select>
         <select
           value={status}
-          onChange={(e) => setStatus(e.target.value)}
+          onChange={(e) => { setLoading(true); setStatus(e.target.value); }}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         >
           <option value="OPEN">Open</option>

@@ -41,14 +41,17 @@ export default function ResourcesPage() {
     if (pricingModel) params.set("pricingModel", pricingModel);
     if (search) params.set("q", search);
 
-    setLoading(true);
+    let cancelled = false;
     fetch(`/api/resources?${params}`)
       .then((r) => r.json())
       .then((data) => {
-        setResources(data.resources || []);
-        setLoading(false);
+        if (!cancelled) {
+          setResources(data.resources || []);
+          setLoading(false);
+        }
       })
-      .catch(() => setLoading(false));
+      .catch(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [search, category, pricingModel]);
 
   return (
@@ -69,12 +72,12 @@ export default function ResourcesPage() {
           type="text"
           placeholder="Search resources..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(e) => { setLoading(true); setSearch(e.target.value); }}
           className="flex-1 rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-indigo-500 focus:ring-indigo-500"
         />
         <select
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={(e) => { setLoading(true); setCategory(e.target.value); }}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         >
           {CATEGORIES.map((c) => (
@@ -85,7 +88,7 @@ export default function ResourcesPage() {
         </select>
         <select
           value={pricingModel}
-          onChange={(e) => setPricingModel(e.target.value)}
+          onChange={(e) => { setLoading(true); setPricingModel(e.target.value); }}
           className="rounded-md border border-gray-300 px-3 py-2 text-sm"
         >
           <option value="">All Pricing</option>

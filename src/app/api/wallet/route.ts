@@ -1,6 +1,7 @@
 import { NextRequest } from "next/server";
 import { authenticateRequest, unauthorized } from "@/lib/api-auth";
 import { prisma } from "@/lib/db";
+import { isCdpEnabled, getAddressBalance } from "@/lib/cdp";
 
 export async function GET(req: NextRequest) {
   const authResult = await authenticateRequest(req);
@@ -17,8 +18,18 @@ export async function GET(req: NextRequest) {
     take: 50,
   });
 
-  // Calculate balance from transactions
-  const balance = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+  // Calculate balance from transactions (DB-only fallback)
+  const dbBalance = transactions.reduce((sum, tx) => sum + tx.amount, 0);
+
+  // When CDP is enabled, try to fetch on-chain USDC balance for the user's address
+  let onChainBalance: number | null = null;
+  if (isCdpEnabled() && user?.walletAddress) {
+    try {
+      onChainBalance = await getAddressBalance(user.walletAddress);
+    } catch (err) {
+      console.warn("[CDP] Failed to fetch on-chain balance, using DB balance:", err);
+    }
+  }
 
   // Count active escrows
   const heldEscrows = await prisma.escrow.findMany({
@@ -43,7 +54,8 @@ export async function GET(req: NextRequest) {
 
   return Response.json({
     walletAddress: user?.walletAddress || null,
-    balance,
+    balance: onChainBalance ?? dbBalance,
+    onChainBalance,
     escrowedAmount,
     pendingEarnings: pendingAmount,
     recentTransactions: transactions,
